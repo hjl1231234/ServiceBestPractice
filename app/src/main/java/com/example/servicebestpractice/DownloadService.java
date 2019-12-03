@@ -139,8 +139,8 @@ public class DownloadService extends Service {
         Intent intent = new Intent(this, MainActivity.class);
         PendingIntent pi = PendingIntent.getActivity(this, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-//        NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         Notification.Builder builder = new Notification.Builder(this);
+
         //产生notification
         Notification notification = builder.setContentTitle("This   is  download    title")
                 .setContentText("This	is	download	text")
@@ -153,6 +153,7 @@ public class DownloadService extends Service {
 
 
         NotificationChannel channel = null;
+        NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
 
@@ -164,6 +165,7 @@ public class DownloadService extends Service {
             channel.canShowBadge();
             channel.setShowBadge(true);
             //必须设置channel
+            manager.createNotificationChannel(channel);
             builder.setChannelId("1");
         }
         /**
