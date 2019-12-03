@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void onServiceDisconnected(ComponentName name) {
             //产生旋转图标
-            ProgressDialog progressDialog=new ProgressDialog(MainActivity.this);
+            ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
 
         }
 
@@ -98,10 +98,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             default:
         }
     }
-//销毁activity同时解绑定
+
+    //销毁activity同时解绑定
     @Override
     protected void onDestroy() {
         super.onDestroy();
         unbindService(connection);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+//        finish();
     }
 }
