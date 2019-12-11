@@ -8,6 +8,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.*;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.logging.Logger;
 
 import static org.junit.Assert.*;
 
@@ -113,7 +115,7 @@ public class ExampleUnitTest {
 
 //        System.out.println(classLoaderGrandSon + "    " + classLoaderSon + "  " + classLoaderParent);
         assertEquals(false, classLoaderGrandSon == classLoaderSon);
-        System.out.println("xxx");
+//        System.out.println("xxx");
 
     }
 
@@ -143,13 +145,55 @@ public class ExampleUnitTest {
 
     @Test
     public void testAbstractFactory() {
+        AbstractFactory abstractFactory1 = new ConcreteFactory1();
+        AbstractFactory abstractFactory2 = new ConcreteFactory2();
 
+        ProductA productA1WeNeed = abstractFactory1.createProductA();
+        ProductA productA2WeNeed = abstractFactory2.createProductA();
+
+        ProductB productB1WeNeed = abstractFactory1.createProductB();
+        ProductB productB2WeNeed = abstractFactory2.createProductB();
+
+    }
+
+    @Test
+    public void testStringBuilder() {
+    }
+
+    @Test
+    public void testPrototype() {
+        concretePrototype prototype1 = new concretePrototype("abc");
+        concretePrototype prototype2 = (concretePrototype) prototype1.myClone();
+        prototype2.filed = "123";
+//        System.out.println(prototype1 + "     " + prototype2);
+    }
+
+    @Test
+    public void testChainOfResponsibility() {
+    }
+
+    @Test
+    public void testCommand() {
+        Light light = new Light();
+        Command commandOn = new LightOnCommand(light);
+        Command commandOff = new LightOffCommand(light);
+        Invoker invoker = new Invoker();
+        invoker.setOnCommands(commandOn, 0);
+        invoker.setOnCommands(commandOn, 1);
+        invoker.setOnCommands(commandOff, 2);
+        invoker.setOffCommands(commandOn, 0);
+        invoker.setOffCommands(commandOn, 1);
+        invoker.setOffCommands(commandOff, 2);
+
+        invoker.onButtonWasPushed(1);
+        invoker.offButtonWasPushed(1);
 
     }
 
 }
 
 /**
+ * hjl
  * 单例模式1
  */
 class SingletonOne {
@@ -233,3 +277,226 @@ enum SingleTonThree {
         this.name = name;
     }
 }
+
+/**
+ * 抽象工厂
+ * xpath.xpathfactory ioc util.calendar
+ */
+abstract class ProductA {
+}
+
+abstract class ProductB {
+}
+
+class ProductA1 extends ProductA {
+}
+
+class ProductA2 extends ProductA {
+}
+
+class ProductB1 extends ProductB {
+}
+
+class ProductB2 extends ProductB {
+}
+
+abstract class AbstractFactory {
+    abstract ProductA createProductA();
+
+    abstract ProductB createProductB();
+}
+
+class ConcreteFactory1 extends AbstractFactory {
+    //A1 B1为一家工厂生产 a2 b2为另一家工厂生产
+    @Override
+    ProductA createProductA() {
+        return new ProductA1();
+    }
+
+    @Override
+    ProductB createProductB() {
+        return new ProductB1();
+    }
+}
+
+class ConcreteFactory2 extends AbstractFactory {
+
+    @Override
+    ProductA createProductA() {
+        return new ProductA2();
+    }
+
+    @Override
+    ProductB createProductB() {
+        return new ProductB2();
+    }
+}
+/**
+ * 建造者 核心是return this
+ * nio.bytebuffer lang.stringbuild lang.stringbuffer
+ */
+
+/**
+ * 原型模式 多例模式
+ * lang.object.clone
+ */
+abstract class Prototype {
+
+    abstract Prototype myClone();
+}
+
+class concretePrototype extends Prototype {
+    public String filed;
+
+    public concretePrototype(String filed) {
+        this.filed = filed;
+    }
+
+    @Override
+    Prototype myClone() {
+        return new concretePrototype(filed);
+    }
+
+    @Override
+    public String toString() {
+        return "concretePrototype{" +
+                "filed='" + filed + '\'' +
+                '}';
+    }
+}
+
+/**
+ * 责任链模式  父类变量protected可以被继承      * 未完成
+ * servlet.filter
+ */
+abstract class Handler {
+    private Handler successor;
+
+    public Handler(Handler successor) {
+        this.successor = successor;
+    }
+
+    public abstract void handleRequest(Request request);
+}
+
+class Request {
+    private RequestType type;
+    private String name;
+
+    public Request(RequestType type, String name) {
+        this.type = type;
+        this.name = name;
+    }
+
+    public RequestType getType() {
+        return type;
+    }
+
+    public String getName() {
+        return name;
+    }
+}
+
+enum RequestType {
+    TYPE1, TYPE2;
+}
+
+class ConcreteHandler1 extends Handler {
+
+    public ConcreteHandler1(Handler successor) {
+        super(successor);
+    }
+
+    @Override
+    public void handleRequest(Request request) {
+        if (request.getType().equals(RequestType.TYPE1))
+            System.out.println("this is type1");
+
+    }
+}
+/**
+ *
+ */
+
+/**
+ * 命令模式
+ * swing.Action hystrix lang.runnable
+ */
+interface Command {
+    void execute();
+}
+
+class LightOnCommand implements Command {
+    //开灯命令
+    Light light;
+
+    public LightOnCommand(Light light) {
+        this.light = light;
+    }
+
+    @Override
+    public void execute() {
+        light.turnOn();
+    }
+}
+
+class LightOffCommand implements Command {
+    Light light;
+
+    @Override
+    public void execute() {
+        light.turnOff();
+    }
+
+    public LightOffCommand(Light light) {
+        this.light = light;
+    }
+}
+
+class Light {
+    public void turnOn() {
+        System.out.println("turnOn");
+    }
+
+    public void turnOff() {
+        System.out.println("turnOff");
+    }
+}
+
+class Invoker {
+    //遥控
+    private Command[] onCommands;
+    private Command[] offCommands;
+    //数组大小,但放这里有什么用呢?
+    private final int soltNum = 7;
+
+    //传入两个参数完成命令存储
+    public void setOnCommands(Command onCommands, int soltNum) {
+        this.onCommands[soltNum] = onCommands;
+    }
+
+    public void setOffCommands(Command offCommands, int soltNum) {
+        this.offCommands[soltNum] = offCommands;
+    }
+
+    public Invoker() {
+        //初始化两个命令数组
+        this.onCommands = new Command[soltNum];
+        this.offCommands = new Command[soltNum];
+    }
+
+    //具体命令动作调用对应命令数组的执行
+    public void onButtonWasPushed(int soltNum) {
+        onCommands[soltNum].execute();
+    }
+
+    public void offButtonWasPushed(int soltNum) {
+        offCommands[soltNum].execute();
+    }
+}
+
+
+/**
+ * 备忘录模式 和命令模式结合可变为可撤销命令的功能
+ *java.io.Serializable
+ */
