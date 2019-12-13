@@ -500,3 +500,26 @@ class Invoker {
  * 备忘录模式 和命令模式结合可变为可撤销命令的功能
  *java.io.Serializable
  */
+
+
+/***
+ * hjl
+ */
+
+class Outer {
+
+    int num = 100;
+
+    void run() {
+        System.out.println(num);
+    }
+
+    static class inner {
+        static final int num = 1;
+
+        static void run() {
+            System.out.println(num);
+        }
+
+    }
+}
