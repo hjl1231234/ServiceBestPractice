@@ -1,5 +1,7 @@
 package com.example.servicebestpractice;
 
+import android.net.nsd.NsdManager;
+
 import org.junit.Test;
 
 import java.io.InputStream;
@@ -189,6 +191,17 @@ public class ExampleUnitTest {
         invoker.offButtonWasPushed(1);
 
     }
+
+    @Test
+    public void testStatic() {
+        Outer outer = new Outer();
+        //测试内部类,静态内部类多些限制条件,外可以访问内,,变量跟随类生命周期,
+        Outer.Inner1 inner1 = new Outer.Inner1();
+        Outer.Inner2 inner2 = new Outer().new Inner2();
+//        inner1.runInner1();
+//        inner2.runInner2();
+    }
+
 
 }
 
@@ -508,18 +521,70 @@ class Invoker {
 
 class Outer {
 
-    int num = 100;
+    static int num = 999;
 
-    void run() {
+    void runo() {
         System.out.println(num);
     }
 
-    static class inner {
-        static final int num = 1;
+    static class Inner1 {
+        int num1 = 101;
 
-        static void run() {
-            System.out.println(num);
+        void runInner1() {
+            //普通,静态内部类和js闭包用法类似,但其实有差别,
+            // 差别在于js中,外封闭域中没有像Java中还要区别变量存在于实例变量(包含类变量),还是局部变量.
+            // 如果是实例变量则和js闭包一样,外封闭域和内封闭域共享共享同一个变量,在堆上.如果是局部变量,则外封闭域和内封闭域不共享共享同一个变量.
+            //即外封闭域的方法中的局部变量和内封闭域匿名内部类中的局部变量在不同的栈中.
+            //如果内外封闭域中变量不一致则违反闭包原则,因此设为final不可变,使得内外封闭域变量一致
+            num1 = Outer.num;
+            System.out.println(num1 + "   ");
+
         }
 
     }
+
+    class Inner2 {
+        int inner2 = 201;
+        Dog dog = new Dog();
+
+        void runInner2() {
+            //好玩的事情,变量放在方法外不需要final和方法内需要final
+            //但利用数组仍然可以改变对象
+            final int[] inner2Local = {2001};
+            final Dog dogLocal = new Dog();
+            final Dog[] dogLocalArr = {new Dog(), new Dog()};
+
+            System.out.println(inner2);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+
+                    System.out.println(inner2 + " " + inner2Local[0] + "  " + inner2Local
+                            + "  " + dog.name + " " + dogLocal.name + "  " + dogLocal + "   " + dogLocalArr[0]);
+                    inner2++;
+                    inner2Local[0]++;
+                    dog.name = "cat";
+                    dogLocal.name = "cat";
+                    dogLocalArr[0] = new Dog();
+
+                }
+            }).start();
+
+            try {
+                //最好玩的事情出现了,有延时和没有延时完全是不同的结果,inner2被改变需要一定的时间
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println(inner2 + " " + inner2Local[0] + "  " + inner2Local
+                    + "  " + dog.name + " " + dogLocal.name + "  " + dogLocal + "   " + dogLocalArr[0]
+                    + "开启thread后    ");
+        }
+    }
+
+    class Dog {
+        public String name = "dog";
+    }
+
 }
+
