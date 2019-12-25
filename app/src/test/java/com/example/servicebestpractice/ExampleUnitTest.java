@@ -2,6 +2,8 @@ package com.example.servicebestpractice;
 
 import android.net.nsd.NsdManager;
 
+import androidx.annotation.NonNull;
+
 import org.junit.Test;
 
 import java.io.InputStream;
@@ -10,7 +12,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.*;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 import java.util.logging.Logger;
 
 import static org.junit.Assert.*;
@@ -187,8 +193,8 @@ public class ExampleUnitTest {
         invoker.setOffCommands(commandOn, 1);
         invoker.setOffCommands(commandOff, 2);
 
-        invoker.onButtonWasPushed(1);
-        invoker.offButtonWasPushed(1);
+//        invoker.onButtonWasPushed(1);
+//        invoker.offButtonWasPushed(1);
 
     }
 
@@ -203,7 +209,78 @@ public class ExampleUnitTest {
     }
 
 
+    @Test
+    public void testPriorityQueue() {
+        PriorityQueue<Recognition> priorityQueue = new PriorityQueue<Recognition>(new Comparator<Recognition>() {
+            @Override
+            public int compare(Recognition o1, Recognition o2) {
+                System.out.println(o1.getTitle().compareTo(o2.getTitle()));
+                return o1.getTitle().compareTo(o2.getTitle());
+            }
+        });
+        Recognition recognition1 = new Recognition("1", "b1", Float.valueOf("1"), true);
+        Recognition recognition2 = new Recognition("2", "a2", Float.valueOf("2"), true);
+        Recognition recognition3 = new Recognition("3", "a3", Float.valueOf("3"), true);
+        ;
+//        System.out.println(priorityQueue.comparator().compare(recognition2, recognition1));
+        priorityQueue.add(recognition2);
+        priorityQueue.add(recognition2);
+        priorityQueue.add(recognition1);
+        priorityQueue.add(recognition3);
+        System.out.println(priorityQueue);
+        while (!priorityQueue.isEmpty()) {
+            System.out.print(priorityQueue.poll().toString());
+        }
+    }
 }
+
+
+class Recognition {
+    private final String id;
+    private final String title;
+    private final boolean quant;
+    private final Float confidence;
+
+    public Recognition(
+            final String id, final String title, final Float confidence, final boolean quant) {
+        this.id = id;
+        this.title = title;
+        this.confidence = confidence;
+        this.quant = quant;
+
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public Float getConfidence() {
+        return confidence;
+    }
+
+    @Override
+    public String toString() {
+        String resultString = "";
+        if (id != null) {
+            resultString += "[" + id + "] ";
+        }
+
+        if (title != null) {
+            resultString += title + " ";
+        }
+
+        if (confidence != null) {
+            resultString += String.format("(%.1f%%) ", confidence * 100.0f);
+        }
+
+        return resultString.trim();
+    }
+}
+
 
 /**
  * hjl
@@ -587,4 +664,5 @@ class Outer {
     }
 
 }
+
 
